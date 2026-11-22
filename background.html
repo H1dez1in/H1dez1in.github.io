@@ -1,0 +1,18 @@
+<!doctype html><script type="module">
+import{OBR,KL,KR,ID,norm,cfg,get}from"./lib.js";
+let ab=0,ult="";
+OBR.onReady(async()=>{
+const gm=(await OBR.player.getRole())==="GM";
+OBR.broadcast.onMessage(KR,e=>OBR.notification.show(e.data.t,e.data.v));
+const fecha=async()=>{if(ab){ab=0;await OBR.popover.close(ID)}};
+const ver=async sel=>{const j=sel.join();if(j===ult)return;ult=j;
+try{const it=sel.length===1?(await OBR.scene.items.getItems(sel))[0]:null,l=it&&it.metadata[KL];
+if(!l)return fecha();
+if(!gm){const c=await cfg();if(!c||l.k!=="chars"||!l.id)return fecha();
+const jog=await get(c,`chars/${l.id}/jog`);if(!norm(jog)||norm(jog)!==norm(await OBR.player.getName()))return fecha()}
+const[W,H]=await Promise.all([OBR.viewport.getWidth(),OBR.viewport.getHeight()]),p=await OBR.viewport.transformPoint(it.position),w=380,h=Math.min(640,H-24);
+await fecha();ab=1;
+await OBR.popover.open({id:ID,url:`/index.html?v=f&k=${l.k}&id=${l.id||""}&n=${encodeURIComponent(l.n||"")}`,width:w,height:h,anchorReference:"POSITION",anchorPosition:{left:Math.max(12,Math.min(p.x+60,W-w-12)),top:Math.max(12,Math.min(p.y-h/2,H-h-12))},anchorOrigin:{horizontal:"LEFT",vertical:"TOP"},transformOrigin:{horizontal:"LEFT",vertical:"TOP"},disableClickAway:true})}catch{}};
+OBR.player.onChange(p=>ver(p.selection||[]));
+});
+</script>
