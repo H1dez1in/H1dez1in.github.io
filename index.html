@@ -20,7 +20,7 @@ details{border-bottom:1px dotted #323d49;padding:4px 0}summary{cursor:pointer}.n
 </style>
 <div id="app"></div>
 <script type="module">
-import{OBR,KL,KC,ID,E,norm,SKA,vit,ar,cfg,conectar,put,patch,img,rolar,anunciar}from"./lib.js";
+import{OBR,KL,KC,ID,E,norm,SKA,vit,ar,cfg,conectar,put,patch,img,rolar,anunciar,diag}from"./lib.js";
 const $=s=>document.querySelector(s),app=$("#app"),Q=new URLSearchParams(location.search);
 const AT={fis:"Físico",men:"Mente",emo:"Emoção"},EL={Sangue:"#c8232c",Conhecimento:"#d89a12",Energia:"#a855f7",Morte:"#8c8c8c",Medo:"#3b2fd6"},col=o=>EL[o.elem]||"#8a94a0",KN={chars:"Jogadores",monstros:"Monstros",npcs:"NPCs"};
 async function abrir(k,id,n){const[W,H]=await Promise.all([OBR.viewport.getWidth(),OBR.viewport.getHeight()]),w=380,h=Math.min(640,H-24);
@@ -29,7 +29,7 @@ await OBR.popover.open({id:ID,url:`/index.html?v=f&k=${k}&id=${id}&n=${encodeURI
 async function ficha(){
 const k=Q.get("k"),id=Q.get("id"),n=Q.get("n"),ch=k==="chars",c=await cfg();
 if(!c){app.innerHTML=`<p class="pad">Sincronia não configurada.</p>`;return}
-let R={},o=null,ph="",pf=0;
+let R={},o=null,ph="",pf=0,ok=0;
 app.innerHTML=`<div class="rb pad"><label>DT <input id="dt" type="number" min="0" placeholder="—"></label><label>Passos <select id="kk">${[-2,-1,0,1,2].map(x=>`<option${x?"":" selected"}>${x}</option>`).join("")}</select></label><label>Bônus <select id="bx"><option value="">—</option>${["d4","d6","d8","d10","d12"].map(x=>`<option>${x}</option>`).join("")}</select></label><label><input id="oc" type="checkbox"> só eu vejo</label></div><div id="lr"></div><div id="ft"><p class="pad">Carregando…</p></div>`;
 const draw=()=>{
 o=(R[k]||{})[id]||Object.values(R[k]||{}).find(x=>x.nome===n);
@@ -63,22 +63,23 @@ else if(d.r==="p")go(`Aptidão (${d.n})`,o.men,(o.ap||{})[d.n]||"d4");
 else if(d.r==="u")go("Desarmado · Luta",o.fis,sc.Luta||"d4",{dmg:"rb"});
 else if(d.r==="a"){const a=ar(o.atq)[j];go(a.n||"Ataque",o[SKA[a.sk]||"fis"],sc[a.sk]||"d4",{dmg:a.dm||"ra",mod:+a.mod||0})}
 else if(d.r==="w"){const i=ar(o.itens)[j],s=i.tipo==="Arma à distância"?"Pontaria":"Luta";go(`${i.nome} · ${s}`,o[SKA[s]],sc[s]||"d4",{dmg:"ra",mod:+i.mod||0})}};
-conectar(c,r=>{R=r;draw()})}
+const es=conectar(c,r=>{ok=1;R=r;draw()}),f=async()=>{if(!ok)$("#ft").innerHTML=`<p class="pad"><b>Não conectou.</b> ${E(await diag(c))}</p>`};es.onerror=f;setTimeout(f,8000)}
 async function panel(){
 const gm=(await OBR.player.getRole())==="GM",nm=await OBR.player.getName();
-let c=await cfg(),R={},es=null,tab=gm&&!c?"cfg":"chars",q="",msg="",lo=0;
+let c=await cfg(),R={},es=null,tab=gm&&!c?"cfg":"chars",q="",msg="",lo=0,er="";
 const mine=o=>norm(o.jog)&&norm(o.jog)===norm(nm);
 const sub=o=>tab==="chars"?`Nível ${o.nivel||0} · ${E(o.perfil)}${o.jog?" · "+E(o.jog):""}`:E(o.papel||"");
-const ls=()=>{if(!lo)return`<p class="pad"><small>Conectando…</small></p>`;
+const ls=()=>{if(!lo)return`<p class="pad">${er?`<b>Não conectou.</b> ${E(er)} <button data-rt="1">Tentar de novo</button>`:"<small>Conectando…</small>"}</p>`;
 const L=Object.values(R[tab]||{}).filter(o=>(gm||mine(o))&&(!q||norm(o.nome+" "+(o.papel||"")+" "+(o.jog||"")).includes(q))).sort((a,b)=>String(a.nome).localeCompare(b.nome,"pt"));
 return L.map(o=>{const v=vit(o,tab==="chars").pv;return`<div class="r" style="--el:${col(o)}"><div><b>${E(o.nome)||"Sem nome"}</b><small>${sub(o)} · PV ${+o[v[0]]||0}/${v[1]}</small></div>${gm?`<button data-v="${E(o.id)}">Vincular</button>`:""}<button data-o="${E(o.id)}">Abrir</button></div>`}).join("")||`<p class="pad"><small>${gm?"Nada aqui ainda. Crie fichas no site.":`Nenhuma ficha com o seu nome (${E(nm)}). Peça ao mestre para preencher o campo Jogador da ficha com esse nome.`}</small></p>`};
-const con=()=>{if(es)es.close();lo=0;if(c)es=conectar(c,r=>{R=r;lo=1;if(tab!=="cfg"&&$("#ls"))$("#ls").innerHTML=ls()})};
+const con=()=>{if(es)es.close();lo=0;er="";if(!c)return;const f=async()=>{if(lo)return;er=await diag(c);if(!lo&&tab!=="cfg"&&$("#ls"))$("#ls").innerHTML=ls()};es=conectar(c,r=>{R=r;lo=1;er="";if(tab!=="cfg"&&$("#ls"))$("#ls").innerHTML=ls()});es.onerror=f;setTimeout(f,8000)};
 const draw=()=>{app.innerHTML=(gm?`<div class="tb">${Object.keys(KN).map(k=>`<button class="t${k===tab?" on":""}" data-t="${k}">${KN[k]}</button>`).join("")}<button class="t${tab==="cfg"?" on":""}" data-t="cfg">Sincronia</button></div>`:"")+
 (tab==="cfg"?`<div class="pad"><p>Cole a URL do seu Realtime Database (Firebase) e o mesmo código de mesa usado no site. Os jogadores recebem isto automaticamente.</p><label>URL do banco<input id="cu" value="${E(c?c.u:"")}" placeholder="https://…firebaseio.com"></label><label>Código da mesa<input id="cm" value="${E(c?c.m:"")}"></label><p><button data-s="1">Salvar para a sala</button></p></div>`
 :c?`<div class="pad">${gm?`<input id="q" placeholder="Buscar…" value="${E(q)}"><p><small>Selecione um token e clique em Vincular. Depois é só clicar no token.</small> <button data-u="1">Desvincular selecionado</button></p>`:`<p><small>Suas fichas</small></p>`}</div><div id="ls">${ls()}</div>`
 :`<p class="pad">O mestre ainda não configurou a sincronia.</p>`)+`<p class="pad" id="m">${E(msg)}</p>`;if(tab!=="cfg"&&!es&&c)con()};
 app.onclick=async e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
 if(d.t){tab=d.t;msg="";return draw()}
+if(d.rt){con();if($("#ls"))$("#ls").innerHTML=ls();return}
 if(d.s){const u=$("#cu").value.trim().replace(/\/+$/,""),m=$("#cm").value.trim().replace(/[^\w-]/g,"");if(!/^https:\/\//.test(u)||!m)msg="Preencha a URL (https://…) e o código da mesa.";else{await OBR.room.setMetadata({[KC]:{u,m}});c={u,m};con();tab="chars";msg="Salvo para toda a sala."}return draw()}
 if(d.o){const o=(R[tab]||{})[d.o];if(o)abrir(tab,d.o,o.nome);return}
 if(d.v||d.u){try{const s=await OBR.player.getSelection();if(!s||!s.length)msg="Selecione um token no mapa primeiro.";else if(d.u){await OBR.scene.items.updateItems(s,xs=>xs.forEach(x=>{delete x.metadata[KL]}));msg="Vínculo removido."}else{const o=R[tab][d.v];await OBR.scene.items.updateItems(s,xs=>xs.forEach(x=>{x.metadata[KL]={k:tab,id:o.id,n:o.nome}}));msg=`${o.nome} vinculado a ${s.length} token(s).`}}catch{msg="Abra uma cena e selecione um token."}draw()}};

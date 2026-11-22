@@ -31,3 +31,8 @@ const res=crit?"Acerto crítico":fail?"Falha crítica":!dt?"":ok?"Sucesso":"Falh
 const dano=p.dmg&&ok?(p.dmg==="ra"?(crit?RA+(top[1]||0):RA):RB)+(p.mod||0):null;
 return{raw,r,pv,ds,sum,RA,RB,dt,crit,fail,ok,res,dano}}
 export const anunciar=(t,v,oc)=>OBR.broadcast.sendMessage(KR,{t,v},{destination:oc?"LOCAL":"ALL"});
+export async function diag(c){try{const r=await fetch(`${c.u}/mesas/${c.m}.json?shallow=true`);
+if(r.status===401||r.status===403)return"O Firebase recusou o acesso (Permission denied). No Realtime Database, aba Regras, cole as regras indicadas e clique em Publicar.";
+if(r.status===404)return"URL do banco incorreta. Use o endereço que aparece no topo da aba Dados do Realtime Database (não do Firestore).";
+if(r.ok)return"O banco responde, mas a conexão em tempo real foi bloqueada. Desative o bloqueador (Brave Shields) para esta página ou teste em outro navegador.";
+return`O Firebase respondeu com erro ${r.status}.`}catch{return"Não consegui falar com o Firebase. Confira a URL (https://…firebaseio.com) e se um bloqueador impede o acesso a firebaseio.com."}}
