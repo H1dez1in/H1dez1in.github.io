@@ -1,0 +1,89 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Barlow:wght@400;600&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#161c23;color:#e3e8ed;font:14px/1.45 Barlow,system-ui,sans-serif}
+h1,h3,.t,.n,.tot,.stamp{font-family:'IM Fell English SC',Georgia,serif;font-weight:400}
+button{font:inherit;color:inherit;background:#1f2730;border:1px solid #323d49;border-radius:3px;padding:3px 10px;cursor:pointer}button:hover{border-color:#86a9d3}
+input,select{font:inherit;color:inherit;background:#0e1217;border:1px solid #323d49;border-radius:3px;padding:5px 8px;width:100%}
+:focus-visible{outline:2px solid #86a9d3;outline-offset:1px}small{color:#8e99a6}p{margin:6px 0}.pad{padding:10px 12px}label{display:block;margin:6px 0}
+.tb{display:flex;overflow-x:auto;border-bottom:2px solid #e3e8ed}.t{border:0;border-radius:0;background:none;font-size:1.05rem;white-space:nowrap;padding:8px 12px}.t.on{background:#e3e8ed;color:#0e1217}
+.r{display:flex;gap:6px;align-items:center;padding:8px 12px;border-left:4px solid var(--el);border-bottom:1px solid #232c36}.r>div{flex:1;min-width:0}.r b{display:block}.r small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rb{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;border-bottom:1px solid #323d49;background:#1b232c}.rb label{display:flex;gap:5px;align-items:center;margin:0}.rb input[type=number]{width:4em}.rb select{width:auto}.rb input[type=checkbox]{width:auto}
+.rr{display:flex;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid #323d49}.tot{font-size:2.3rem;line-height:1;min-width:2ch;text-align:center}.ok{color:#58c28c}.ko{color:#ec5a64}
+.dc{display:inline-block;min-width:1.6em;text-align:center;border:1px solid #e3e8ed;font-style:normal;margin-right:3px;padding:0 3px}.dc.x{text-decoration:line-through;color:#8e99a6;border-color:#323d49}.dc.pv{border-color:#ec5a64;color:#ec5a64}.stamp{border:2px solid currentColor;padding:0 6px;display:inline-block;transform:rotate(-2deg)}
+.fh{padding:12px 14px;border-top:4px solid var(--el)}.hd{display:flex;gap:10px;align-items:flex-start}.hd>div{flex:1}.pt{width:56px;height:56px;object-fit:cover;border:2px solid var(--el);flex:none}h1{font-size:1.7rem;line-height:1.05;margin:0}
+h3{font-size:1.05rem;color:#86a9d3;margin:14px 0 4px}
+.vt{display:flex;align-items:center;gap:8px;margin:6px 0}.vt>b{width:2em}.vt .g{flex:1}.bar{height:10px;background:#0e1217;border:1px solid #323d49}.bar i{display:block;height:100%}
+.at{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-top:10px}.at div{border:1px solid #323d49;padding:6px}.n{font-size:1.4rem;display:block}
+.ch{display:inline-block;border:1px solid #323d49;padding:1px 8px;margin:2px 4px 2px 0;font-size:.85rem}.ch.tr{border-color:#d3b366;color:#d3b366}span.ch{background:none}
+details{border-bottom:1px dotted #323d49;padding:4px 0}summary{cursor:pointer}.nt{white-space:pre-wrap;color:#b7c0ca}
+</style>
+<div id="app"></div>
+<script type="module">
+import{OBR,KL,KC,ID,E,norm,SKA,vit,ar,cfg,conectar,put,patch,img,rolar,anunciar,diag}from"./lib.js";
+const $=s=>document.querySelector(s),app=$("#app"),Q=new URLSearchParams(location.search);
+const AT={fis:"Físico",men:"Mente",emo:"Emoção"},EL={Sangue:"#c8232c",Conhecimento:"#d89a12",Energia:"#a855f7",Morte:"#8c8c8c",Medo:"#3b2fd6"},col=o=>EL[o.elem]||"#8a94a0",KN={chars:"Jogadores",monstros:"Monstros",npcs:"NPCs"};
+async function abrir(k,id,n){const[W,H]=await Promise.all([OBR.viewport.getWidth(),OBR.viewport.getHeight()]),w=380,h=Math.min(640,H-24);
+await OBR.popover.close(ID);
+await OBR.popover.open({id:ID,url:`/index.html?v=f&k=${k}&id=${id}&n=${encodeURIComponent(n)}`,width:w,height:h,anchorReference:"POSITION",anchorPosition:{left:W-w-12,top:Math.max(12,(H-h)/2)},anchorOrigin:{horizontal:"LEFT",vertical:"TOP"},transformOrigin:{horizontal:"LEFT",vertical:"TOP"},disableClickAway:true})}
+async function ficha(){
+const k=Q.get("k"),id=Q.get("id"),n=Q.get("n"),ch=k==="chars",c=await cfg();
+if(!c){app.innerHTML=`<p class="pad">Sincronia não configurada.</p>`;return}
+let R={},o=null,ph="",pf=0,ok=0;
+app.innerHTML=`<div class="rb pad"><label>DT <input id="dt" type="number" min="0" placeholder="—"></label><label>Passos <select id="kk">${[-2,-1,0,1,2].map(x=>`<option${x?"":" selected"}>${x}</option>`).join("")}</select></label><label>Bônus <select id="bx"><option value="">—</option>${["d4","d6","d8","d10","d12"].map(x=>`<option>${x}</option>`).join("")}</select></label><label><input id="oc" type="checkbox"> só eu vejo</label></div><div id="lr"></div><div id="ft"><p class="pad">Carregando…</p></div>`;
+const draw=()=>{
+o=(R[k]||{})[id]||Object.values(R[k]||{}).find(x=>x.nome===n);
+if(!o){$("#ft").innerHTML=`<p class="pad">Ficha não encontrada. Ela foi apagada ou ainda está carregando.</p>`;return}
+if(!pf){pf=1;img(c,k,o.id||id).then(m=>{ph=m&&m.img||"";if(ph)draw()}).catch(()=>{})}
+const lv=+o.nivel||0,V=vit(o,ch),sc=o.s||{};
+const vt=(l,[f,m],z)=>m>0?`<div class="vt"><b>${l}</b><button data-a="${f}" data-d="-1" aria-label="${l} menos 1">−</button><div class="g"><div class="bar"><i style="width:${Math.max(0,Math.min(100,(+o[f]||0)/m*100))}%;background:${z}"></i></div></div><button data-a="${f}" data-d="1" aria-label="${l} mais 1">+</button><span>${+o[f]||0}/${m}</span></div>`:"";
+const sec=(t,h)=>h?`<h3>${t}</h3>${h}`:"";
+const nomes=ch?Object.keys(SKA).sort((a,b)=>a.localeCompare(b,"pt")):Object.keys(sc);
+const sk=nomes.map(x=>`<button class="ch${ch&&sc[x]&&sc[x]!=="d4"?" tr":""}" data-r="s" data-n="${E(x)}">${E(x)} ${o[SKA[x]||"fis"]}+${sc[x]||"d4"}</button>`).join("")+(ch?Object.entries(o.ap||{}).filter(([,d])=>d&&d!=="d4").map(([x,d])=>`<button class="ch tr" data-r="p" data-n="${E(x)}">Aptidão (${E(x)}) ${o.men}+${d}</button>`).join("")+`<button class="ch" data-r="u">Desarmado</button>`:"");
+const at=ar(o.atq).map((a,j)=>`<button class="ch" data-r="a" data-j="${j}">${E(a.n||"Ataque")} ${o[SKA[a.sk]||"fis"]}+${sc[a.sk]||"d4"}${a.mod?" +"+a.mod:""}</button>`).join("");
+const hb=ar(o.habs).map(h=>`<details><summary>${E(h.nome)}</summary><small>${E(h.desc)}</small></details>`).join("")+(o.hab?`<p class="nt">${E(o.hab)}</p>`:"");
+const it=ar(o.itens).map((i,j)=>i.tipo==="Arma corpo a corpo"||i.tipo==="Arma à distância"?`<button class="ch" data-r="w" data-j="${j}" title="${E(i.desc)}">${E(i.nome)} +${+i.mod||0}</button>`:`<span class="ch" title="${E(i.desc)}">${E(i.nome)}</span>`).join("");
+const nt=o.lore||o.notas||"";
+$("#ft").innerHTML=`<div class="fh" style="--el:${col(o)}"><div class="hd">${ph?`<img class="pt" src="${E(ph)}" alt="">`:""}<div><h1>${E(o.nome)}</h1><small>${ch?`Nível ${lv} · ${E(o.perfil)}${o.voc?" · "+E(o.voc):""}${o.jog?" · "+E(o.jog):""}`:E(o.papel||"")}${o.elem&&o.elem!=="Nenhum"?" · "+E(o.elem):""}</small></div><button data-x aria-label="Fechar">×</button></div>${vt("PV",V.pv,"#e0525a")}${vt("PD",V.pd,"#5aa2ea")}<div class="at">${["fis","men","emo"].map(a=>`<div><small>${AT[a]}</small><b class="n">${o[a]}</b></div>`).join("")}</div>${sec("Ataques",at)}${sec("Perícias",sk)}${sec("Habilidades",hb)}${sec("Inventário",it)}${sec("Notas",nt?`<p class="nt">${E(nt)}</p>`:"")}</div>`};
+const go=(label,da,db,op={})=>{
+const r=rolar(o,da,db,{...op,pc:ch,dt:+$("#dt").value||0,k:+$("#kk").value,bx:$("#bx").value});
+if(ch){const u={};if(o.bonus)u.bonus="";if(r.pv===1)u.pav="";if(o.perfil==="Executor"&&(r.fail||(r.dt&&!r.ok))&&(+o.imp||0)<(+o.imx||3))u.imp=(+o.imp||0)+1;
+if(Object.keys(u).length){Object.assign(o,u);patch(c,`${k}/${o.id||id}`,u)}}
+$("#dt").value="";$("#bx").value="";
+const cl=r.res?(r.ok?"ok":"ko"):"";
+$("#lr").innerHTML=`<div class="rr"><span class="tot ${cl}">${r.sum}</span><div><b>${E(label)}</b>${r.res?` <span class="stamp ${cl}">${r.res}</span>`:""}<br>${r.raw.map((v,i)=>`<i class="dc${r.r[i]?"":" x"}">${v}</i>`).join("")}${r.pv?`<i class="dc pv">${r.pv}</i>`:""}<small>${r.ds.join("+")} · RA ${r.RA} · RB ${r.RB}${r.dt?" · DT "+r.dt:""}</small>${r.dano!=null?`<br>Dano <b>${r.dano}</b>${r.crit&&op.dmg==="ra"?" (crítico: soma as duas maiores)":""}`:""}</div></div>`;
+anunciar(`${o.nome} · ${label}: ${r.sum}${r.res?" ("+r.res+")":""}${r.dano!=null?" · dano "+r.dano:""} [${r.raw.join(", ")}]`,r.res?(r.ok?"SUCCESS":"ERROR"):"DEFAULT",$("#oc").checked);
+draw()};
+app.onclick=e=>{const b=e.target.closest("button");if(!b||!o)return;const d=b.dataset;
+if("x" in d)return OBR.popover.close(ID);
+if(d.a){const f=d.a,m=vit(o,ch)[f==="pv"||f==="pva"?"pv":"pd"][1],v=Math.max(0,Math.min(m,(+o[f]||0)+ +d.d));o[f]=v;put(c,`${k}/${o.id||id}/${f}`,v);return draw()}
+const sc=o.s||{},j=+d.j;
+if(d.r==="s")go(d.n,o[SKA[d.n]||"fis"],sc[d.n]||"d4");
+else if(d.r==="p")go(`Aptidão (${d.n})`,o.men,(o.ap||{})[d.n]||"d4");
+else if(d.r==="u")go("Desarmado · Luta",o.fis,sc.Luta||"d4",{dmg:"rb"});
+else if(d.r==="a"){const a=ar(o.atq)[j];go(a.n||"Ataque",o[SKA[a.sk]||"fis"],sc[a.sk]||"d4",{dmg:a.dm||"ra",mod:+a.mod||0})}
+else if(d.r==="w"){const i=ar(o.itens)[j],s=i.tipo==="Arma à distância"?"Pontaria":"Luta";go(`${i.nome} · ${s}`,o[SKA[s]],sc[s]||"d4",{dmg:"ra",mod:+i.mod||0})}};
+const es=conectar(c,r=>{ok=1;R=r;draw()}),f=async()=>{if(!ok)$("#ft").innerHTML=`<p class="pad"><b>Não conectou.</b> ${E(await diag(c))}</p>`};es.onerror=f;setTimeout(f,8000)}
+async function panel(){
+const gm=(await OBR.player.getRole())==="GM",nm=await OBR.player.getName();
+let c=await cfg(),R={},es=null,tab=gm&&!c?"cfg":"chars",q="",msg="",lo=0,er="";
+const mine=o=>norm(o.jog)&&norm(o.jog)===norm(nm);
+const sub=o=>tab==="chars"?`Nível ${o.nivel||0} · ${E(o.perfil)}${o.jog?" · "+E(o.jog):""}`:E(o.papel||"");
+const ls=()=>{if(!lo)return`<p class="pad">${er?`<b>Não conectou.</b> ${E(er)} <button data-rt="1">Tentar de novo</button>`:"<small>Conectando…</small>"}</p>`;
+const L=Object.values(R[tab]||{}).filter(o=>(gm||mine(o))&&(!q||norm(o.nome+" "+(o.papel||"")+" "+(o.jog||"")).includes(q))).sort((a,b)=>String(a.nome).localeCompare(b.nome,"pt"));
+return L.map(o=>{const v=vit(o,tab==="chars").pv;return`<div class="r" style="--el:${col(o)}"><div><b>${E(o.nome)||"Sem nome"}</b><small>${sub(o)} · PV ${+o[v[0]]||0}/${v[1]}</small></div>${gm?`<button data-v="${E(o.id)}">Vincular</button>`:""}<button data-o="${E(o.id)}">Abrir</button></div>`}).join("")||`<p class="pad"><small>${gm?"Nada aqui ainda. Crie fichas no site.":`Nenhuma ficha com o seu nome (${E(nm)}). Peça ao mestre para preencher o campo Jogador da ficha com esse nome.`}</small></p>`};
+const con=()=>{if(es)es.close();lo=0;er="";if(!c)return;const f=async()=>{if(lo)return;er=await diag(c);if(!lo&&tab!=="cfg"&&$("#ls"))$("#ls").innerHTML=ls()};es=conectar(c,r=>{R=r;lo=1;er="";if(tab!=="cfg"&&$("#ls"))$("#ls").innerHTML=ls()});es.onerror=f;setTimeout(f,8000)};
+const draw=()=>{app.innerHTML=(gm?`<div class="tb">${Object.keys(KN).map(k=>`<button class="t${k===tab?" on":""}" data-t="${k}">${KN[k]}</button>`).join("")}<button class="t${tab==="cfg"?" on":""}" data-t="cfg">Sincronia</button></div>`:"")+
+(tab==="cfg"?`<div class="pad"><p>Cole a URL do seu Realtime Database (Firebase) e o mesmo código de mesa usado no site. Os jogadores recebem isto automaticamente.</p><label>URL do banco<input id="cu" value="${E(c?c.u:"")}" placeholder="https://…firebaseio.com"></label><label>Código da mesa<input id="cm" value="${E(c?c.m:"")}"></label><p><button data-s="1">Salvar para a sala</button></p></div>`
+:c?`<div class="pad">${gm?`<input id="q" placeholder="Buscar…" value="${E(q)}"><p><small>Selecione um token e clique em Vincular. Depois é só clicar no token.</small> <button data-u="1">Desvincular selecionado</button></p>`:`<p><small>Suas fichas</small></p>`}</div><div id="ls">${ls()}</div>`
+:`<p class="pad">O mestre ainda não configurou a sincronia.</p>`)+`<p class="pad" id="m">${E(msg)}</p>`;if(tab!=="cfg"&&!es&&c)con()};
+app.onclick=async e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+if(d.t){tab=d.t;msg="";return draw()}
+if(d.rt){con();if($("#ls"))$("#ls").innerHTML=ls();return}
+if(d.s){const u=$("#cu").value.trim().replace(/\/+$/,""),m=$("#cm").value.trim().replace(/[^\w-]/g,"");if(!/^https:\/\//.test(u)||!m)msg="Preencha a URL (https://…) e o código da mesa.";else{await OBR.room.setMetadata({[KC]:{u,m}});c={u,m};con();tab="chars";msg="Salvo para toda a sala."}return draw()}
+if(d.o){const o=(R[tab]||{})[d.o];if(o)abrir(tab,d.o,o.nome);return}
+if(d.v||d.u){try{const s=await OBR.player.getSelection();if(!s||!s.length)msg="Selecione um token no mapa primeiro.";else if(d.u){await OBR.scene.items.updateItems(s,xs=>xs.forEach(x=>{delete x.metadata[KL]}));msg="Vínculo removido."}else{const o=R[tab][d.v];await OBR.scene.items.updateItems(s,xs=>xs.forEach(x=>{x.metadata[KL]={k:tab,id:o.id,n:o.nome}}));msg=`${o.nome} vinculado a ${s.length} token(s).`}}catch{msg="Abra uma cena e selecione um token."}draw()}};
+app.oninput=e=>{if(e.target.id==="q"){q=norm(e.target.value);$("#ls").innerHTML=ls()}};
+con();draw()}
+OBR.onReady(()=>Q.get("v")==="f"?ficha():panel());
+</script>
