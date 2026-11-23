@@ -1,0 +1,17 @@
+<!doctype html><script type="module">
+import{OBR,KL,KR,meuPid,abrirPop,fechaPop}from"./lib.js";
+let ab=0,ult="";
+OBR.onReady(async()=>{
+const gm=(await OBR.player.getRole())==="GM",pid=meuPid();
+OBR.broadcast.onMessage(KR,e=>OBR.notification.show(e.data.t,e.data.v));
+const fecha=async()=>{if(ab){ab=0;await fechaPop()}};
+const ver=async sel=>{const j=sel.join();if(j===ult)return;ult=j;
+try{const it=sel.length===1?(await OBR.scene.items.getItems(sel))[0]:null,l=it&&it.metadata[KL];
+if(!l)return fecha();
+/* jogador só abre a própria ficha (importada por ele); o resto do mestre nunca abre */
+if(!gm&&(l.k!=="pj"||!l.id||l.p!==pid))return fecha();
+const p=await OBR.viewport.transformPoint(it.position);
+ab=1;await abrirPop(`v=f&k=${l.k}&id=${encodeURIComponent(l.id||"")}&n=${encodeURIComponent(l.n||"")}&p=${encodeURIComponent(l.p||"")}`,p)}catch{}};
+OBR.player.onChange(p=>ver(p.selection||[]));
+});
+</script>

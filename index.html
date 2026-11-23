@@ -1,0 +1,159 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Barlow:wght@400;600&display=swap">
+<style>
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#161c23;color:#e3e8ed;font:14px/1.45 Barlow,system-ui,sans-serif}
+h1,h3,.t,.n,.tot,.stamp,.tp b{font-family:'IM Fell English SC',Georgia,serif;font-weight:400}
+button{font:inherit;color:inherit;background:#1f2730;border:1px solid #323d49;border-radius:3px;padding:3px 10px;cursor:pointer}button:hover{border-color:#86a9d3}
+input,select,textarea{font:inherit;color:inherit;background:#0e1217;border:1px solid #323d49;border-radius:3px;padding:5px 8px;width:100%}
+:focus-visible{outline:2px solid #86a9d3;outline-offset:1px}small{color:#8e99a6}p{margin:6px 0}.pad{padding:10px 12px}label{display:block;margin:6px 0}
+.tp{display:flex;align-items:center;gap:4px;padding:6px 8px;background:#1b232c;border-bottom:1px solid #323d49;position:sticky;top:0;z-index:5}.tp b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:1.05rem}.tp button{padding:2px 9px;line-height:1.3}
+.tb{display:flex;overflow-x:auto;border-bottom:2px solid #e3e8ed}.t{border:0;border-radius:0;background:none;font-size:1.05rem;white-space:nowrap;padding:8px 12px}.t.on{background:#e3e8ed;color:#0e1217}
+.r{display:flex;gap:6px;align-items:center;padding:8px 12px;border-left:4px solid var(--el);border-bottom:1px solid #232c36}.r>div{flex:1;min-width:0}.r b{display:block}.r small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rb{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;border-bottom:1px solid #323d49;background:#1b232c}.rb label{display:flex;gap:5px;align-items:center;margin:0}.rb input[type=number]{width:4em}.rb select{width:auto}.rb input[type=checkbox]{width:auto}
+.rr{display:flex;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid #323d49}.tot{font-size:2.3rem;line-height:1;min-width:2ch;text-align:center}.ok{color:#58c28c}.ko{color:#ec5a64}
+.dc{display:inline-block;min-width:1.6em;text-align:center;border:1px solid #e3e8ed;font-style:normal;margin-right:3px;padding:0 3px}.dc.x{text-decoration:line-through;color:#8e99a6;border-color:#323d49}.dc.pv{border-color:#ec5a64;color:#ec5a64}.stamp{border:2px solid currentColor;padding:0 6px;display:inline-block;transform:rotate(-2deg)}
+.fh{padding:12px 14px;border-top:4px solid var(--el)}.hd{display:flex;gap:10px;align-items:flex-start}.hd>div{flex:1}.pt{width:56px;height:56px;object-fit:cover;border:2px solid var(--el);flex:none}h1{font-size:1.7rem;line-height:1.05;margin:0}
+h3{font-size:1.05rem;color:#86a9d3;margin:14px 0 4px}
+.vt{display:flex;align-items:center;gap:8px;margin:6px 0}.vt>b{width:2em}.vt .g{flex:1}.bar{height:10px;background:#0e1217;border:1px solid #323d49}.bar i{display:block;height:100%}
+.at{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-top:10px}.at div{border:1px solid #323d49;padding:6px}.n{font-size:1.4rem;display:block}
+.ch{display:inline-block;border:1px solid #323d49;padding:1px 8px;margin:2px 4px 2px 0;font-size:.85rem}.ch.tr{border-color:#d3b366;color:#d3b366}span.ch{background:none}
+details{border-bottom:1px dotted #323d49;padding:4px 0}summary{cursor:pointer}.nt{white-space:pre-wrap;color:#b7c0ca}
+</style>
+<div id="app"></div>
+<script type="module">
+import{OBR,KL,KC,POPS,POS,E,norm,SKA,vit,ar,pubDe,cfgSala,lerG,salvarG,pidSan,meuPid,ctxMestre,ctxJog,ctxTodos,conectar,put,patch,del,img,putImg,rolar,anunciar,diag,abrirPop}from"./lib.js";
+const $=s=>document.querySelector(s),app=$("#app"),Q=new URLSearchParams(location.search);
+const AT={fis:"Físico",men:"Mente",emo:"Emoção"},EL={Sangue:"#c8232c",Conhecimento:"#d89a12",Energia:"#a855f7",Morte:"#8c8c8c",Medo:"#3b2fd6"},col=o=>EL[o.elem]||"#8a94a0",KN={chars:"Jogadores",monstros:"Monstros",npcs:"NPCs"};
+const abrir=(k,id,n,p)=>abrirPop(`v=f&k=${k}&id=${encodeURIComponent(id)}&n=${encodeURIComponent(n||"")}&p=${encodeURIComponent(p||"")}`);
+const RULES=`{\n  "rules": {\n    "mesas": {\n      "$mesa": {\n        ".read": true,\n        ".write": true\n      }\n    }\n  }\n}`;
+
+/* ===================== POPUP DA FICHA ===================== */
+async function ficha(){
+const k=Q.get("k"),id=Q.get("id"),n=Q.get("n"),pj=pidSan(Q.get("p")),K=k==="pj"?"chars":k,ch=K==="chars",own=Q.get("i")==="b"?1:0;
+let c=null,R={},o=null,ph="",pf=0,ok=0,mini=0,h0=0;
+/* barra fixa: fica visível em QUALQUER estado (carregando, erro, ficha não encontrada) */
+app.innerHTML=`<div class="tp"><b>${E(n)||"Ficha"}</b><button data-dock="L" title="Mover para a esquerda" aria-label="Mover para a esquerda">⇤</button><button data-dock="R" title="Mover para a direita" aria-label="Mover para a direita">⇥</button><button data-dock="" title="Abrir perto do token" aria-label="Abrir perto do token">◎</button><button data-min title="Minimizar" aria-label="Minimizar">–</button><button data-x title="Fechar (Esc)" aria-label="Fechar">×</button></div><div id="bd"><p class="pad">Carregando…</p></div>`;
+const corpo=h=>{$("#bd").innerHTML=h},fechar=()=>OBR.popover.close(POPS[own]);
+addEventListener("keydown",e=>{if(e.key==="Escape")fechar()});
+const go=(label,da,db,op={})=>{
+const r=rolar(o,da,db,{...op,pc:ch,dt:+$("#dt").value||0,k:+$("#kk").value,bx:$("#bx").value});
+if(ch){const u={};if(o.bonus)u.bonus="";if(r.pv===1)u.pav="";if(o.perfil==="Executor"&&(r.fail||(r.dt&&!r.ok))&&(+o.imp||0)<(+o.imx||3))u.imp=(+o.imp||0)+1;
+if(Object.keys(u).length){Object.assign(o,u);patch(c,`${K}/${o.id||id}`,u)}}
+$("#dt").value="";$("#bx").value="";
+const cl=r.res?(r.ok?"ok":"ko"):"";
+$("#lr").innerHTML=`<div class="rr"><span class="tot ${cl}">${r.sum}</span><div><b>${E(label)}</b>${r.res?` <span class="stamp ${cl}">${r.res}</span>`:""}<br>${r.raw.map((v,i)=>`<i class="dc${r.r[i]?"":" x"}">${v}</i>`).join("")}${r.pv?`<i class="dc pv">${r.pv}</i>`:""}<small>${r.ds.join("+")} · RA ${r.RA} · RB ${r.RB}${r.dt?" · DT "+r.dt:""}</small>${r.dano!=null?`<br>Dano <b>${r.dano}</b>${r.crit&&op.dmg==="ra"?" (crítico: soma as duas maiores)":""}`:""}</div></div>`;
+anunciar(`${o.nome} · ${label}: ${r.sum}${r.res?" ("+r.res+")":""}${r.dano!=null?" · dano "+r.dano:""} [${r.raw.join(", ")}]`,r.res?(r.ok?"SUCCESS":"ERROR"):"DEFAULT",$("#oc").checked);
+draw()};
+const draw=()=>{
+o=(R[K]||{})[id]||Object.values(R[K]||{}).find(x=>x.nome===n);
+if(!o){$("#ft").innerHTML=`<p class="pad">Ficha não encontrada. Ela foi apagada ou ainda está carregando.</p>`;return}
+document.querySelector(".tp b").textContent=o.nome||"Ficha";
+if(!pf){pf=1;img(c,K,o.id||id).then(m=>{ph=m&&m.img||"";if(ph)draw()}).catch(()=>{})}
+const lv=+o.nivel||0,V=vit(o,ch),sc=o.s||{};
+const vt=(l,[f,m],z)=>m>0?`<div class="vt"><b>${l}</b><button data-a="${f}" data-d="-1" aria-label="${l} menos 1">−</button><div class="g"><div class="bar"><i style="width:${Math.max(0,Math.min(100,(+o[f]||0)/m*100))}%;background:${z}"></i></div></div><button data-a="${f}" data-d="1" aria-label="${l} mais 1">+</button><span>${+o[f]||0}/${m}</span></div>`:"";
+const sec=(t,h)=>h?`<h3>${t}</h3>${h}`:"";
+const nomes=ch?Object.keys(SKA).sort((a,b)=>a.localeCompare(b,"pt")):Object.keys(sc);
+const sk=nomes.map(x=>`<button class="ch${ch&&sc[x]&&sc[x]!=="d4"?" tr":""}" data-r="s" data-n="${E(x)}">${E(x)} ${o[SKA[x]||"fis"]}+${sc[x]||"d4"}</button>`).join("")+(ch?Object.entries(o.ap||{}).filter(([,d])=>d&&d!=="d4").map(([x,d])=>`<button class="ch tr" data-r="p" data-n="${E(x)}">Aptidão (${E(x)}) ${o.men}+${d}</button>`).join("")+`<button class="ch" data-r="u">Desarmado</button>`:"");
+const at=ar(o.atq).map((a,j)=>`<button class="ch" data-r="a" data-j="${j}">${E(a.n||"Ataque")} ${o[SKA[a.sk]||"fis"]}+${sc[a.sk]||"d4"}${a.mod?" +"+a.mod:""}</button>`).join("");
+const hb=ar(o.habs).map(h=>`<details><summary>${E(h.nome)}</summary><small>${E(h.desc)}</small></details>`).join("")+(o.hab?`<p class="nt">${E(o.hab)}</p>`:"");
+const it=ar(o.itens).map((i,j)=>i.tipo==="Arma corpo a corpo"||i.tipo==="Arma à distância"?`<button class="ch" data-r="w" data-j="${j}" title="${E(i.desc)}">${E(i.nome)} +${+i.mod||0}</button>`:`<span class="ch" title="${E(i.desc)}">${E(i.nome)}</span>`).join("");
+const nt=o.lore||o.notas||"";
+$("#ft").innerHTML=`<div class="fh" style="--el:${col(o)}"><div class="hd">${ph?`<img class="pt" src="${E(ph)}" alt="">`:""}<div><h1>${E(o.nome)}</h1><small>${ch?`Nível ${lv} · ${E(o.perfil)}${o.voc?" · "+E(o.voc):""}${o.jog?" · "+E(o.jog):""}`:E(o.papel||"")}${o.elem&&o.elem!=="Nenhum"?" · "+E(o.elem):""}</small></div></div>${vt("PV",V.pv,"#e0525a")}${vt("PD",V.pd,"#5aa2ea")}<div class="at">${["fis","men","emo"].map(a=>`<div><small>${AT[a]}</small><b class="n">${o[a]}</b></div>`).join("")}</div>${sec("Ataques",at)}${sec("Perícias",sk)}${sec("Habilidades",hb)}${sec("Inventário",it)}${sec("Notas",nt?`<p class="nt">${E(nt)}</p>`:"")}</div>`};
+app.onclick=async e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+/* botões da barra: funcionam sempre, mesmo sem ficha carregada */
+if("x" in d)return fechar();
+if(d.dock!==undefined){try{localStorage.setItem(POS,d.dock)}catch{}const u=new URLSearchParams(location.search);u.delete("i");try{await abrirPop(u.toString(),undefined,own)}catch{}return}
+if("min" in d){try{if(!mini){h0=(await OBR.popover.getHeight(POPS[own]))||640;await OBR.popover.setHeight(POPS[own],44);$("#bd").hidden=true;mini=1;b.textContent="▢";b.title="Restaurar"}else{await OBR.popover.setHeight(POPS[own],h0);$("#bd").hidden=false;mini=0;b.textContent="–";b.title="Minimizar"}}catch{}return}
+if(!o||!c)return;
+if(d.a){const f=d.a,m=vit(o,ch)[f==="pv"||f==="pva"?"pv":"pd"][1],v=Math.max(0,Math.min(m,(+o[f]||0)+ +d.d));o[f]=v;put(c,`${K}/${o.id||id}/${f}`,v);return draw()}
+const sc=o.s||{},j=+d.j;
+if(d.r==="s")go(d.n,o[SKA[d.n]||"fis"],sc[d.n]||"d4");
+else if(d.r==="p")go(`Aptidão (${d.n})`,o.men,(o.ap||{})[d.n]||"d4");
+else if(d.r==="u")go("Desarmado · Luta",o.fis,sc.Luta||"d4",{dmg:"rb"});
+else if(d.r==="a"){const a=ar(o.atq)[j];go(a.n||"Ataque",o[SKA[a.sk]||"fis"],sc[a.sk]||"d4",{dmg:a.dm||"ra",mod:+a.mod||0})}
+else if(d.r==="w"){const i=ar(o.itens)[j],s=i.tipo==="Arma à distância"?"Pontaria":"Luta";go(`${i.nome} · ${s}`,o[SKA[s]],sc[s]||"d4",{dmg:"ra",mod:+i.mod||0})}};
+/* quem pode abrir: o mestre abre qualquer uma; o jogador, só as próprias fichas importadas */
+const gm=(await OBR.player.getRole())==="GM";
+if(!gm&&(k!=="pj"||!pj||pj!==meuPid())){corpo(`<p class="pad">Você só pode abrir as suas próprias fichas.</p>`);return}
+c=k==="pj"?await ctxJog(pj):await ctxMestre();
+if(!c){corpo(`<p class="pad">${k==="pj"?"O mestre ainda não configurou a sincronia.":"Este navegador não tem o código do mestre. Abra a aba Sincronia da extensão e informe o código."}</p>`);return}
+corpo(`<div class="rb pad"><label>DT <input id="dt" type="number" min="0" placeholder="—"></label><label>Passos <select id="kk">${[-2,-1,0,1,2].map(x=>`<option${x?"":" selected"}>${x}</option>`).join("")}</select></label><label>Bônus <select id="bx"><option value="">—</option>${["d4","d6","d8","d10","d12"].map(x=>`<option>${x}</option>`).join("")}</select></label><label><input id="oc" type="checkbox"> só eu vejo</label></div><div id="lr"></div><div id="ft"><p class="pad">Carregando…</p></div>`);
+const es=conectar(c,r=>{ok=1;R=r;draw()}),f=async()=>{if(!ok&&$("#ft"))$("#ft").innerHTML=`<p class="pad"><b>Não conectou.</b> ${E(await diag(c))}</p>`};es.onerror=f;setTimeout(f,8000)}
+
+/* ===================== PAINEL DO JOGADOR ===================== */
+const reduz=src=>new Promise(res=>{if(!src||!/^data:image\//.test(src))return res("");const i=new Image();i.onload=()=>{try{const s=Math.min(1,160/Math.max(i.width,i.height)),cv=document.createElement("canvas");cv.width=Math.max(1,Math.round(i.width*s));cv.height=Math.max(1,Math.round(i.height*s));cv.getContext("2d").drawImage(i,0,0,cv.width,cv.height);res(cv.toDataURL("image/webp",.85))}catch{res("")}};i.onerror=()=>res("");i.src=src});
+const limpa=(v,d=0)=>{if(d>6)return null;
+if(Array.isArray(v))return v.slice(0,300).map(x=>limpa(x,d+1));
+if(v&&typeof v==="object"){const o={};for(const[k,x]of Object.entries(v)){if(k==="img"||k==="gal")continue;o[k.replace(/[.$#\[\]\/]/g,"_").slice(0,100)]=limpa(x,d+1)}return o}
+if(typeof v==="string")return v.slice(0,20000);
+return typeof v==="number"||typeof v==="boolean"?v:null};
+const ler=t=>{try{const r=JSON.parse(String(t).trim()),L=Array.isArray(r)?r:Array.isArray(r.fichas)?r.fichas:Array.isArray(r.chars)?r.chars:[r];
+return L.filter(o=>o&&typeof o==="object"&&o.nome!==undefined&&/^d\d+$/.test(o.fis)&&/^d\d+$/.test(o.men)&&/^d\d+$/.test(o.emo)).slice(0,12)}catch{return[]}};
+async function painelJogador(){
+const pid=meuPid(),nm=await OBR.player.getName(),c=await ctxJog(pid);
+if(!c){app.innerHTML=`<p class="pad">O mestre ainda não configurou a sincronia.</p>`;return}
+let R={},es=null,lo=0,er="",msg="",cand=[],sure="";
+const ls=()=>{if(!lo)return`<p class="pad">${er?`<b>Não conectou.</b> ${E(er)} <button data-rt="1">Tentar de novo</button>`:"<small>Conectando…</small>"}</p>`;
+const L=Object.values(R.chars||{}).sort((a,b)=>String(a.nome).localeCompare(b.nome,"pt"));
+return L.map(o=>{const v=vit(o,1).pv;return`<div class="r" style="--el:${col(o)}"><div><b>${E(o.nome)||"Sem nome"}</b><small>Nível ${+o.nivel||0} · ${E(o.perfil)} · PV ${+o[v[0]]||0}/${v[1]}</small></div><button data-o="${E(o.id)}">Abrir</button><button data-rm="${E(o.id)}">${sure===o.id?"Confirmar?":"Remover"}</button></div>`}).join("")||`<p class="pad"><small>Você ainda não importou nenhuma ficha.</small></p>`};
+const cd=()=>cand.map((o,i)=>`<div class="r" style="--el:${col(o)}"><div><b>${E(o.nome)||"Sem nome"}</b><small>Nível ${+o.nivel||0} · ${E(o.perfil)}</small></div><button data-im="${i}">Importar</button></div>`).join("");
+const pinta=()=>{if($("#ls"))$("#ls").innerHTML=ls()},nota=()=>{if($("#m"))$("#m").textContent=msg};
+const con=()=>{if(es)es.close();lo=0;er="";const f=async()=>{if(lo)return;er=await diag(c);pinta()};es=conectar(c,r=>{R=r;lo=1;er="";pinta()});es.onerror=f;setTimeout(f,8000)};
+app.innerHTML=`<div class="pad"><b>Suas fichas</b></div><div id="ls">${ls()}</div><div class="pad"><h3 style="margin-top:0">Importar ficha</h3><small>No site, abra a ficha e clique em “Copiar para o Owlbear”. Depois cole o texto aqui.</small><textarea id="imp" rows="4" placeholder="Cole aqui o texto copiado do site"></textarea></div><div id="cd"></div><p class="pad" id="m"></p>`;
+app.oninput=e=>{if(e.target.id!=="imp")return;const t=e.target.value;cand=t.trim()?ler(t):[];msg=t.trim()&&!cand.length?"Não reconheci esse texto. Use o botão “Copiar para o Owlbear” do site.":"";$("#cd").innerHTML=cd();nota()};
+app.onclick=async e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+if(d.rt){con();pinta();return}
+if(d.o){const o=(R.chars||{})[d.o];if(o)abrir("pj",o.id,o.nome,pid);return}
+if(d.rm){if(sure!==d.rm){sure=d.rm;pinta();return}sure="";try{await del(c,`chars/${d.rm}`);await putImg(c,"chars",d.rm,null);msg="Ficha removida."}catch{msg="Não consegui remover."}pinta();nota();return}
+if(d.im!==undefined){const o=cand[+d.im];if(!o)return;msg="Importando…";nota();
+try{const id=pidSan(o.id)||Math.random().toString(36).slice(2,10),f=limpa(o);f.id=id;if(!norm(f.jog))f.jog=nm;
+const foto=await reduz(o.img),r=await put(c,`chars/${id}`,f);if(!r.ok)throw new Error("o banco recusou ("+r.status+")");
+await putImg(c,"chars",id,foto?{img:foto}:null);msg=`Importada: ${o.nome||"ficha"}.`;cand=[];$("#imp").value=""}catch(x){msg="Não consegui importar: "+(x&&x.message||x)}
+$("#cd").innerHTML=cd();nota()}};
+con()}
+
+/* ===================== PAINEL DO MESTRE ===================== */
+async function painelMestre(){
+let s=await cfgSala(),g=lerG(),c=await ctxMestre(),cp=await ctxTodos(),R={},RP={},es=null,esp=null,lo=0,lop=0,er="",msg="",q="",conf="",fu=null,fg=null;
+let tab=c?"chars":"cfg";
+const itens=()=>{const L=[];
+if(tab==="chars"){for(const[p,v]of Object.entries(RP||{}))Object.values((v&&v.chars)||{}).forEach(o=>L.push({o,k:"pj",p}));Object.values(R.chars||{}).forEach(o=>L.push({o,k:"chars",p:""}))}
+else Object.values(R[tab]||{}).forEach(o=>L.push({o,k:tab,p:""}));
+return L.filter(x=>!q||norm(x.o.nome+" "+(x.o.papel||"")+" "+(x.o.jog||"")).includes(q)).sort((a,b)=>String(a.o.nome).localeCompare(b.o.nome,"pt"))};
+const key=x=>`${x.k}|${x.p}|${x.o.id}`;
+const sub=x=>x.k==="pj"?`Jogador${x.o.jog?": "+E(x.o.jog):""} · Nível ${+x.o.nivel||0} · ${E(x.o.perfil)}`:x.k==="chars"?`Mestre · Nível ${+x.o.nivel||0} · ${E(x.o.perfil)}`:E(x.o.papel||"");
+const ls=()=>{
+if(tab!=="chars"&&!c)return`<p class="pad"><small>Informe o código do mestre na aba Sincronia para ver ${KN[tab]}.</small></p>`;
+const ok=tab==="chars"?(lo||lop):lo;
+if(!ok)return`<p class="pad">${er?`<b>Não conectou.</b> ${E(er)} <button data-rt="1">Tentar de novo</button>`:"<small>Conectando…</small>"}</p>`;
+return itens().map(x=>{const v=vit(x.o,x.k!=="monstros"&&x.k!=="npcs").pv;return`<div class="r" style="--el:${col(x.o)}"><div><b>${E(x.o.nome)||"Sem nome"}</b><small>${sub(x)} · PV ${+x.o[v[0]]||0}/${v[1]}</small></div><button data-v="${E(key(x))}">Vincular</button><button data-o="${E(key(x))}">Abrir</button></div>`}).join("")||`<p class="pad"><small>${tab==="chars"?"Nenhuma ficha ainda. Os jogadores importam as deles pela extensão; as suas você cria no site.":"Nada aqui ainda. Crie fichas no site."}</small></p>`};
+const pinta=()=>{if(tab!=="cfg"&&$("#ls"))$("#ls").innerHTML=ls()};
+const con=()=>{if(es)es.close();if(esp)esp.close();es=esp=null;lo=lop=0;er="";
+if(c){const f=async()=>{if(lo)return;er=await diag(c);pinta()};es=conectar(c,r=>{R=r;lo=1;er="";pinta()});es.onerror=f;setTimeout(f,8000)}
+if(cp){const f=async()=>{if(lop||lo||er)return;er=await diag(cp);pinta()};esp=conectar(cp,r=>{RP=r;lop=1;er="";pinta()});esp.onerror=f;setTimeout(f,8000)}};
+const cfgHtml=()=>`<div class="pad">${s&&!c?`<p><b>Falta o código do mestre neste navegador.</b> Se você já usava a sincronia antes, escolha um código novo: o antigo foi compartilhado com os jogadores.</p>`:""}<p>Cole a URL do seu Realtime Database (Firebase) e escolha o <b>código do mestre</b>: um código secreto, só seu. Use o mesmo código no site (aba Backup e sincronia).</p><label>URL do banco<input id="cu" value="${E(fu??(s?s.u:""))}" placeholder="https://…firebaseio.com"></label><label>Código do mestre (secreto, mínimo 8 caracteres)<input id="cm" autocomplete="off" value="${E(fg??g)}"></label><p><button data-s="1">Salvar para a sala</button> <button data-gen="1">Gerar código</button></p><p><small>Os jogadores recebem só um código derivado deste, que dá acesso apenas às fichas que eles mesmos importam. Seus monstros, NPCs e fichas ficam só com você.</small></p><details><summary>Regras do Firebase</summary><p><small>No Firebase Console, abra Realtime Database → Regras, cole o texto abaixo e clique em Publicar.</small></p><textarea rows="9" readonly>${E(RULES)}</textarea></details></div>`;
+const draw=()=>{app.innerHTML=`<div class="tb">${Object.keys(KN).map(k=>`<button class="t${k===tab?" on":""}" data-t="${k}">${KN[k]}</button>`).join("")}<button class="t${tab==="cfg"?" on":""}" data-t="cfg">Sincronia</button></div>`+
+(tab==="cfg"?cfgHtml():`<div class="pad"><input id="q" placeholder="Buscar…" value="${E(q)}"><p><small>Selecione um token e clique em Vincular. Depois é só clicar no token.</small> <button data-u="1">Desvincular selecionado</button></p></div><div id="ls">${ls()}</div>`)+`<p class="pad" id="m">${E(msg)}</p>`};
+app.onclick=async e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+if(d.t){tab=d.t;msg="";return draw()}
+if(d.rt){con();pinta();return}
+if(d.gen){const a=new Uint8Array(16);crypto.getRandomValues(a);fg=[...a].map(x=>(x%36).toString(36)).join("");$("#cm").value=fg;return}
+if(d.s){const u=$("#cu").value.trim().replace(/\/+$/,""),g2=$("#cm").value.trim().replace(/[^\w-]/g,"");
+if(!/^https:\/\//.test(u)||g2.length<8){msg="Preencha a URL (https://…) e um código de pelo menos 8 caracteres (letras, números ou hífen).";return draw()}
+try{const m2=await pubDe(g2);
+if(s&&s.m&&s.m!==m2&&conf!==g2){conf=g2;msg="Este código é diferente do usado antes: os jogadores precisarão importar as fichas de novo. Clique em Salvar para a sala outra vez para confirmar.";return draw()}
+await OBR.room.setMetadata({[KC]:{u,m:m2}});salvarG(g2);conf="";fu=fg=null;s={u,m:m2};g=g2;c=await ctxMestre();cp=await ctxTodos();con();tab="chars";
+msg=lerG()===g2?"Salvo. O código do mestre ficou só neste navegador; a sala recebeu apenas o código derivado.":"Salvo na sala, mas o navegador não guardou o código do mestre: você precisará informá-lo de novo da próxima vez."}
+catch{msg="Não consegui salvar. Tente de novo."}
+return draw()}
+if(d.o){const x=itens().find(z=>key(z)===d.o);if(x)abrir(x.k,x.o.id,x.o.nome,x.p);return}
+if(d.v||d.u){try{const sel=await OBR.player.getSelection();
+if(!sel||!sel.length)msg="Selecione um token no mapa primeiro.";
+else if(d.u){await OBR.scene.items.updateItems(sel,xs=>xs.forEach(x=>{delete x.metadata[KL]}));msg="Vínculo removido."}
+else{const x=itens().find(z=>key(z)===d.v);if(!x)return;await OBR.scene.items.updateItems(sel,xs=>xs.forEach(t=>{t.metadata[KL]={k:x.k,id:x.o.id,n:x.o.nome,p:x.p}}));msg=`${x.o.nome} vinculado a ${sel.length} token(s).`}}catch{msg="Abra uma cena e selecione um token."}draw()}};
+app.oninput=e=>{const i=e.target.id;if(i==="q"){q=norm(e.target.value);$("#ls").innerHTML=ls()}else if(i==="cu")fu=e.target.value;else if(i==="cm")fg=e.target.value};
+con();draw()}
+
+async function panel(){return(await OBR.player.getRole())==="GM"?painelMestre():painelJogador()}
+OBR.onReady(()=>Q.get("v")==="f"?ficha():panel());
+</script>
